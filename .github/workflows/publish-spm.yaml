@@ -2,10 +2,6 @@ name: Build, tag and create release
 on:
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'Release branch, eg. release/0.MINOR'
-        required: true
-        type: string
       version:
         description: 'New release version, eg. 0.MINOR.PATCH'
         required: true
@@ -19,7 +15,6 @@ jobs:
       - name: Checkout release branch
         uses: actions/checkout@v2
         with:
-          ref: ${{ inputs.branch }}
           submodules: true
 
       - name: Cache
@@ -47,22 +42,22 @@ jobs:
       - name: Build bdk-ffi for x86_64-apple-darwin
         working-directory: bdk-ffi
         run: |
-          cargo build --profile release-smaller --target x86_64-apple-darwin
+          cargo build --release --target x86_64-apple-darwin
 
       - name: Build bdk-ffi for aarch64-apple-darwin
         working-directory: bdk-ffi
         run: |
-          cargo build --profile release-smaller --target aarch64-apple-darwin
+          cargo build --release --target aarch64-apple-darwin
 
       - name: Build bdk-ffi for x86_64-apple-ios
         working-directory: bdk-ffi
         run: |
-          cargo build --profile release-smaller --target x86_64-apple-ios
+          cargo build --release --target x86_64-apple-ios
 
       - name: Build bdk-ffi for aarch64-apple-ios
         working-directory: bdk-ffi
         run: |
-          cargo build --profile release-smaller --target aarch64-apple-ios
+          cargo build --release --target aarch64-apple-ios
 
       - name: Build bdk-ffi for aarch64-apple-ios-sim
         working-directory: bdk-ffi
@@ -72,10 +67,10 @@ jobs:
       - name: Create lipo-ios-sim and lipo-macos
         working-directory: bdk-ffi
         run: |
-          mkdir -p target/lipo-ios-sim/release-smaller
-          lipo target/aarch64-apple-ios-sim/release/libbdkffi.a target/x86_64-apple-ios/release-smaller/libbdkffi.a -create -output target/lipo-ios-sim/release-smaller/libbdkffi.a
-          mkdir -p target/lipo-macos/release-smaller
-          lipo target/aarch64-apple-darwin/release-smaller/libbdkffi.a target/x86_64-apple-darwin/release-smaller/libbdkffi.a -create -output target/lipo-macos/release-smaller/libbdkffi.a
+          mkdir -p target/lipo-ios-sim/release
+          lipo target/aarch64-apple-ios-sim/release/libbdkffi.a target/x86_64-apple-ios/release/libbdkffi.a -create -output target/lipo-ios-sim/release/libbdkffi.a
+          mkdir -p target/lipo-macos/release
+          lipo target/aarch64-apple-darwin/release/libbdkffi.a target/x86_64-apple-darwin/release/libbdkffi.a -create -output target/lipo-macos/release/libbdkffi.a
 
       - name: Create bdkFFI.xcframework
         run: |
@@ -83,9 +78,9 @@ jobs:
           cp Sources/BitcoinDevKit/bdkFFI.h bdkFFI.xcframework/ios-arm64/bdkFFI.framework/Headers
           cp Sources/BitcoinDevKit/bdkFFI.h bdkFFI.xcframework/ios-arm64_x86_64-simulator/bdkFFI.framework/Headers
           cp Sources/BitcoinDevKit/bdkFFI.h bdkFFI.xcframework/macos-arm64_x86_64/bdkFFI.framework/Headers
-          cp bdk-ffi/target/aarch64-apple-ios/release-smaller/libbdkffi.a bdkFFI.xcframework/ios-arm64/bdkFFI.framework/bdkFFI
-          cp bdk-ffi/target/lipo-ios-sim/release-smaller/libbdkffi.a bdkFFI.xcframework/ios-arm64_x86_64-simulator/bdkFFI.framework/bdkFFI
-          cp bdk-ffi/target/lipo-macos/release-smaller/libbdkffi.a bdkFFI.xcframework/macos-arm64_x86_64/bdkFFI.framework/bdkFFI
+          cp bdk-ffi/target/aarch64-apple-ios/release/libbdkffi.a bdkFFI.xcframework/ios-arm64/bdkFFI.framework/bdkFFI
+          cp bdk-ffi/target/lipo-ios-sim/release/libbdkffi.a bdkFFI.xcframework/ios-arm64_x86_64-simulator/bdkFFI.framework/bdkFFI
+          cp bdk-ffi/target/lipo-macos/release/libbdkffi.a bdkFFI.xcframework/macos-arm64_x86_64/bdkFFI.framework/bdkFFI
           rm Sources/BitcoinDevKit/bdkFFI.h
           rm Sources/BitcoinDevkit/bdkFFI.modulemap
           rm bdkFFI.xcframework.zip || true
